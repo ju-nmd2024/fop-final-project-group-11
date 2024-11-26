@@ -125,6 +125,7 @@ function draw() {
   charTwo();
   drawPlatforms();
   ground();
+  backdrop();
 }
 
 // keypresses
@@ -170,3 +171,6 @@ function ground() {
   fill(0, 255, 0);
   rect(0, 382, 1000, height - 382);
 }
+
+//backdrop
+function backdrop() {}
