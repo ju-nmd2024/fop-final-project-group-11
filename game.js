@@ -1,6 +1,6 @@
 // Variables char1
 let x1 = 89;
-let y1 = 342;
+let y1 = 332;
 let xWidth1 = 40;
 let yHeight1 = 40;
 let moveStep1 = 5;
@@ -11,7 +11,7 @@ let isJump1 = false;
 
 // Variables char2
 let x2 = 39;
-let y2 = 342;
+let y2 = 332;
 let xWidth2 = 40;
 let yHeight2 = 40;
 let moveStep2 = 5;
@@ -27,6 +27,8 @@ let platforms = [
   { x: 500, y: 250, width: 150, height: 20 },
   { x: 670, y: 300, width: 150, height: 20 },
 ];
+//coin array
+let coin = [{ x: 200, y: 300, width: 20, height: 20 }];
 
 // Scrolling variables
 let scrollOffset = 0;
@@ -87,8 +89,9 @@ function moving() {
     }
 
     // Stop updates if character 1 falls into a gap
-    if (y1 > height) {
+    if (y1 > height || y2 >= height) {
       char1Stopped = true;
+      char2Stopped = true;
     }
   }
 
@@ -129,11 +132,6 @@ function moving() {
         isJump2 = false;
         jumpVelo2 = 0;
       }
-    }
-
-    // Stop updates if character 2 falls into a gap
-    if (y2 > height) {
-      char2Stopped = true;
     }
   }
 
@@ -176,6 +174,7 @@ function isOnAnyPlatform(x, y, width, height, velocity) {
 function draw() {
   clear();
   background(255);
+  backdrop();
 
   // Only update if neither character has stopped
   if (!char1Stopped || !char2Stopped) {
@@ -188,6 +187,7 @@ function draw() {
 
   drawPlatforms();
   ground();
+  drawCoins();
 }
 
 function keyPressed() {
@@ -223,8 +223,7 @@ function drawPlatforms() {
   fill(100, 23, 40);
 
   // Add more platforms dynamically
-  if (random(1) < 0.02) {
-    // 10% chance to generate a platform per frame
+  if (random(1) < 0.012) {
     let platformWidth = random(80, 120);
     let platformHeight = 20;
     let platformX = scrollOffset + width + random(50, 300); // Place ahead of the screen
@@ -236,6 +235,9 @@ function drawPlatforms() {
       width: platformWidth,
       height: platformHeight,
     });
+    if (char1Stopped || char2Stopped) {
+      platform = false;
+    }
   }
 
   // Remove platforms that move off-screen
@@ -277,3 +279,35 @@ function ground() {
     groundSegments.shift();
   }
 }
+
+function drawCoins() {
+  fill(255, 255, 0);
+
+  //add more coins dynamically
+  if (random(1) < 0.005) {
+    fill(255, 255, 0);
+    let coinWidth = 20;
+    let coinHeight = 20;
+    let coinX = scrollOffset + width + random(50, 300);
+    let coinY = random(100, 350); // Random height
+
+    coin.push({
+      x: coinX,
+      y: coinY,
+      width: 20,
+      height: 20,
+    });
+  }
+
+  //remove the coins offscreen
+  coins = coin.filter((coin) => coin.x - scrollOffset + coin.width > 0);
+
+  // Draw the coins
+  for (let coin of coins) {
+    fill(255, 255, 0);
+    ellipse(coin.x - scrollOffset, coin.y, coin.width, coin.height);
+  }
+}
+//if char 1 or char 2 touches coin coin dissapears
+
+function backdrop() {}
