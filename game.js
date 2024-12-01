@@ -3,32 +3,108 @@ let x1 = 89;
 let y1 = 342;
 let xWidth1 = 40;
 let yHeight1 = 40;
-let moveStep1 = 5;
+let moveStep1 = 4;
 let gravity1 = 1;
 let jump1 = -15;
 let jumpVelo1 = 0;
 let isJump1 = false;
+let jumpCount1 = 0;
 
 // Variables char2
 let x2 = 39;
 let y2 = 332;
 let xWidth2 = 40;
 let yHeight2 = 40;
-let moveStep2 = 5;
+let moveStep2 = 4;
 let gravity2 = 1;
 let jump2 = -15;
 let jumpVelo2 = 0;
 let isJump2 = false;
+let jumpCount2 = 0;
 
 coinVisible = true;
+let score = 0;
+let count = 0;
+const maxJump = 2;
+let fallingObjects = [];
+let fallSpeed = 4;
+let gameState = "start";
 
-// Platform variables
-let platforms = [
-  { x: 165, y: 300, width: 100, height: 20 },
-  { x: 315, y: 240, width: 100, height: 20 },
-  { x: 500, y: 250, width: 150, height: 20 },
-  { x: 670, y: 300, width: 150, height: 20 },
-];
+function startScreen() {
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  textAlign(CENTER, CENTER);
+  textSize(26);
+  text("start", width / 2, height / 4);
+}
+
+function gameScreen() {
+  clear();
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+
+  if (!char1Stopped || !char2Stopped) {
+    moving();
+  }
+  drawPlatforms();
+  ground();
+  drawCoins();
+  fill(255);
+  textSize(24);
+  text("Score: " + score, 10, 30);
+  fallEnemy();
+  if (!char1Stopped) charOne();
+  if (!char2Stopped) charTwo();
+  if (char1Stopped && char2Stopped) {
+    gameState = "lose";
+  }
+}
+function loseScreen() {
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  text("you died", width / 2, height / 4);
+}
+
+function resetGame() {
+  // Reset Character 1 variables
+  x1 = 89;
+  y1 = 342;
+  jumpVelo1 = 0;
+  isJump1 = false;
+  jumpCount1 = 0;
+  char1Stopped = false;
+
+  // Reset Character 2 variables
+  x2 = 39;
+  y2 = 332;
+  jumpVelo2 = 0;
+  isJump2 = false;
+  jumpCount2 = 0;
+  char2Stopped = false;
+
+  // Reset scrolling
+  scrollOffset = 0;
+
+  // Reset platforms
+  platforms = [{ x: 165, y: 300, width: 100, height: 20 }];
+
+  // Reset coins
+  coin = [{ x: 200, y: 300, width: 20, height: 20 }];
+
+  // Reset ground segments
+  groundSegments = [{ x: 0, width: 1200 }];
+
+  // Reset falling objects
+  fallingObjects = [];
+
+  // Reset score
+  score = 0;
+
+  // Reset game state
+  gameState = "start"; // Or "game" if you want to directly start the game
+}
+
+// Platform array
+let platforms = [{ x: 165, y: 300, width: 100, height: 20 }];
 
 // Coin array
 let coin = [{ x: 200, y: 300, width: 20, height: 20 }];
@@ -46,12 +122,9 @@ let char2Stopped = false;
 
 function setup() {
   createCanvas(1200, 500);
-  background(255);
 }
 
-// Mechanics
 function moving() {
-  // Character 1 movement
   if (!char1Stopped) {
     if (keyIsDown(RIGHT_ARROW)) {
       x1 += moveStep1;
@@ -60,13 +133,16 @@ function moving() {
       x1 -= moveStep1;
     }
 
-    // Apply gravity to Character 1
-    if (isJump1 || !isOnAnyPlatform(x1, y1, xWidth1, yHeight1, jumpVelo1)) {
+    if (!isOnAnyPlatform(x1, y1, xWidth1, yHeight1, jumpVelo1)) {
       y1 += jumpVelo1;
       jumpVelo1 += gravity1;
+    } else if (isOnAnyPlatform(x1, y1, xWidth1, yHeight1, jumpVelo1)) {
+      y1 = Math.min(y1, 382 - yHeight1);
+      isJump1 = false;
+      jumpVelo1 = 0;
+      jumpCount1 = 0;
     }
 
-    // STAY ON platform
     for (let platform of platforms) {
       if (
         isOnPlatform(x1, y1, xWidth1, yHeight1, jumpVelo1, platform) &&
@@ -78,7 +154,6 @@ function moving() {
       }
     }
 
-    // STAY ON ground
     for (let segment of groundSegments) {
       if (
         x1 + xWidth1 > segment.x - scrollOffset &&
@@ -91,14 +166,13 @@ function moving() {
       }
     }
 
-    // Stop updates if character 1 falls into a gap
     if (y1 > height || y2 >= height) {
       char1Stopped = true;
       char2Stopped = true;
+      coinVisible = false;
     }
   }
 
-  // Character 2 movement
   if (!char2Stopped) {
     if (keyIsDown(68)) {
       x2 += moveStep2;
@@ -107,12 +181,16 @@ function moving() {
       x2 -= moveStep2;
     }
 
-    if (isJump2 || !isOnAnyPlatform(x2, y2, xWidth2, yHeight2, jumpVelo2)) {
+    if (!isOnAnyPlatform(x2, y2, xWidth2, yHeight2, jumpVelo2)) {
       y2 += jumpVelo2;
       jumpVelo2 += gravity2;
+    } else if (isOnAnyPlatform(x2, y2, xWidth2, yHeight2, jumpVelo2)) {
+      y2 = Math.min(y2, 382 - yHeight2);
+      isJump2 = false;
+      jumpVelo2 = 0;
+      jumpCount2 = 0;
     }
 
-    // STAY ON PLATFORM
     for (let platform of platforms) {
       if (
         isOnPlatform(x2, y2, xWidth2, yHeight2, jumpVelo2, platform) &&
@@ -124,7 +202,6 @@ function moving() {
       }
     }
 
-    // STAY ON GROUND
     for (let segment of groundSegments) {
       if (
         x2 + xWidth2 > segment.x - scrollOffset &&
@@ -138,7 +215,6 @@ function moving() {
     }
   }
 
-  // Update scroll offset
   scrollOffset += scrollSpeed;
 }
 
@@ -173,37 +249,32 @@ function isOnAnyPlatform(x, y, width, height, velocity) {
 }
 
 function draw() {
-  clear();
-  background(255);
-
-  if (!char1Stopped || !char2Stopped) {
-    moving();
+  if (gameState === "start") {
+    startScreen();
+  } else if (gameState === "game") {
+    gameScreen(); // Call the game screen function
+  } else if (gameState === "lose") {
+    loseScreen();
   }
-
-  if (!char1Stopped) charOne();
-  if (!char2Stopped) charTwo();
-
-  drawPlatforms();
-  ground();
-  drawCoins();
 }
 
 function keyPressed() {
-  if (
-    keyCode === UP_ARROW &&
-    !char1Stopped &&
-    (!isJump1 || isOnAnyPlatform(x1, y1, xWidth1, yHeight1, jumpVelo1))
-  ) {
+  if (gameState === "start" && keyCode === ENTER) {
+    gameState = "game"; // Start the game
+  } else if (gameState === "lose" && keyCode === ENTER) {
+    resetGame();
+    gameState = "start";
+  }
+
+  if (keyCode === UP_ARROW && !char1Stopped && jumpCount1 < maxJump) {
     isJump1 = true;
     jumpVelo1 = jump1;
+    jumpCount1++;
   }
-  if (
-    keyCode === 87 &&
-    !char2Stopped &&
-    (!isJump2 || isOnAnyPlatform(x2, y2, xWidth2, yHeight2, jumpVelo2))
-  ) {
+  if (keyCode === 87 && !char2Stopped && jumpCount2 < maxJump) {
     isJump2 = true;
     jumpVelo2 = jump2;
+    jumpCount2++;
   }
 }
 
@@ -259,16 +330,20 @@ function charOne() {
   push();
   stroke(200);
   fill(255);
-  arc(x1 - 19, baseY - 287, 15, 22, -HALF_PI, HALF_PI, PI);
+  arc(x1 - 18, baseY - 282, 15, 22, -HALF_PI, HALF_PI, PI);
   fill(0);
   noStroke();
-  arc(x1 - 13, baseY - 287, 10, 12, -HALF_PI, HALF_PI, PI);
+  arc(x1 - 13, baseY - 282, 10, 12, -HALF_PI, HALF_PI, PI);
   pop();
 
   // Leg
   push();
+
   rect(x1 - 57, baseY - 218, 15, 25);
   ellipse(x1 - 45, baseY - 194, 25, 10);
+
+  rect(x1 - 37, baseY - 218, 10, 25);
+  ellipse(x1 - 25, baseY - 194, 25, 10);
   pop();
 
   // Arm
@@ -352,16 +427,19 @@ function charTwo() {
   push();
   stroke(200);
   fill(255);
-  arc(x2 - 19, baseY - 287, 15, 22, -HALF_PI, HALF_PI, PI);
+  arc(x2 - 19, baseY - 282, 15, 22, -HALF_PI, HALF_PI, PI);
   fill(0);
   noStroke();
-  arc(x2 - 13, baseY - 287, 10, 12, -HALF_PI, HALF_PI, PI);
+  arc(x2 - 13, baseY - 282, 10, 12, -HALF_PI, HALF_PI, PI);
   pop();
 
   // Leg
   push();
-  rect(x2 - 47, baseY - 218, 15, 25);
-  ellipse(x2 - 37, baseY - 194, 20, 10);
+  rect(x2 - 52, baseY - 218, 15, 25);
+  ellipse(x2 - 40, baseY - 194, 20, 10);
+
+  rect(x2 - 27, baseY - 218, 10, 25);
+  ellipse(x2 - 18, baseY - 194, 25, 10);
   pop();
 
   // Arm
@@ -394,13 +472,12 @@ function charTwo() {
 }
 
 function drawPlatforms() {
-  fill(100, 23, 40);
-
-  if (random(1) < 0.024) {
+  fill(245, 150, 100);
+  if (random(1) < 0.015) {
     let platformWidth = random(80, 120);
     let platformHeight = 20;
     let platformX = scrollOffset + width + random(50, 250);
-    let platformY = random(100, 350);
+    let platformY = random(350, 200);
 
     platforms.push({
       x: platformX,
@@ -425,7 +502,7 @@ function drawPlatforms() {
 }
 
 function ground() {
-  fill(0, 255, 0);
+  fill(245, 150, 100);
 
   for (let i = 0; i < groundSegments.length; i++) {
     let segment = groundSegments[i];
@@ -450,9 +527,7 @@ function ground() {
 
 function drawCoins() {
   fill(255, 255, 0);
-
-  // Spawn new coins
-  if (random(1) < 0.05) {
+  if (random(1) < 0.01) {
     let coinWidth = 20;
     let coinHeight = 20;
     let coinX = scrollOffset + width + random(50, 300);
@@ -466,14 +541,12 @@ function drawCoins() {
     });
   }
 
-  // remove coins that are off screen
   coin = coin.filter((coin) => coin.x - scrollOffset + coin.width > 0);
 
   for (let i = coin.length - 1; i >= 0; i--) {
     let c = coin[i];
     ellipse(c.x - scrollOffset, c.y, c.width, c.height);
 
-    //  collision with char1
     if (
       c.x - scrollOffset < x1 + xWidth1 &&
       c.x - scrollOffset + c.width > x1 &&
@@ -481,16 +554,105 @@ function drawCoins() {
       c.y + c.height > y1
     ) {
       coin.splice(i, 1);
-    }
-
-    //  collision with char2
-    else if (
+      score++;
+    } else if (
       c.x - scrollOffset < x2 + xWidth2 &&
       c.x - scrollOffset + c.width > x2 &&
       c.y < y2 + yHeight2 &&
       c.y + c.height > y2
     ) {
       coin.splice(i, 1);
+      score++;
     }
+  }
+}
+
+class FallingObject {
+  constructor(x, y, width, height, speed) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.speed = speed;
+  }
+
+  move() {
+    this.y += this.speed; // Moves the object down
+  }
+
+  draw() {
+    fill(200, 0, 0); // Red color for falling object
+    rect(this.x, this.y, this.width, this.height);
+  }
+
+  checkCollision(charX, charY, charWidth, charHeight) {
+    return (
+      this.x < charX + charWidth &&
+      this.x + this.width > charX &&
+      this.y < charY + charHeight &&
+      this.y + this.height > charY
+    );
+  }
+
+  isOffScreen() {
+    return this.y > height;
+  }
+}
+
+function fallEnemy() {
+  // Spawn new falling object occasionally
+  if (random(1) < 0.03) {
+    let objWidth = random(20, 40);
+    let objHeight = random(20, 40);
+    let objX = random(0, width);
+    let objSpeed = random(2, 5);
+
+    fallingObjects.push(
+      new FallingObject(objX, 0, objWidth, objHeight, objSpeed)
+    );
+  }
+
+  for (let i = fallingObjects.length - 1; i >= 0; i--) {
+    let obj = fallingObjects[i];
+    obj.move();
+    obj.draw();
+
+    // Check for collisions with Character 1
+    if (obj.checkCollision(x1, y1, xWidth1, yHeight1)) {
+      char1Stopped = true;
+      fallingObjects.splice(i, 1);
+      continue;
+    }
+
+    // Check for collisions with Character 2
+    if (obj.checkCollision(x2, y2, xWidth2, yHeight2)) {
+      char2Stopped = true;
+      fallingObjects.splice(i, 1);
+      continue;
+    }
+
+    // Remove objects that fall off-screen
+    if (obj.isOffScreen()) {
+      fallingObjects.splice(i, 1);
+    }
+  }
+}
+
+//gpt https://chatgpt.com/share/674c15c6-6254-8005-8fbf-8234525435b3
+function drawGradientBackground(color1, color2, color3) {
+  noStroke();
+
+  for (let y = 0; y < height / 2; y++) {
+    let inter = map(y, 0, height / 2, 0, 1);
+    let c = lerpColor(color(color1), color(color2), inter);
+    fill(c);
+    rect(0, y, width, 1);
+  }
+
+  for (let y = height / 2; y < height; y++) {
+    let inter = map(y, height / 2, height, 0, 1);
+    let c = lerpColor(color(color2), color(color3), inter);
+    fill(c);
+    rect(0, y, width, 1);
   }
 }
