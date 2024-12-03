@@ -32,19 +32,45 @@ let timer = 60;
 let intervalID;
 let isTimerActive = false;
 let buttonX = 500;
-let buttonY = 100;
-let buttonW = 200;
-let buttonH = 50;
+let buttonY = 200;
+let buttonW = 300;
+let buttonH = 100;
 
 function startScreen() {
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
-  noFill();
-  stroke(0);
-  rect(buttonX, buttonY, buttonW, buttonH);
-  fill(0);
+  push();
+  let rectX = 200;
+  let rectY = 220;
+  let rectWidth = 400;
+  let rectHeight = 120;
+
+  //start button
+  stroke(225, 130, 80);
+  strokeWeight(10);
+  fill(245, 150, 100);
+
+  rect(buttonX, buttonY, buttonW, buttonH, 70);
+  strokeWeight(3);
+  fill(255);
   textAlign(CENTER, CENTER);
-  textSize(26);
-  text("start", width / 2, height / 4);
+  textSize(36);
+  text("START", buttonX + 150, buttonY + 50);
+
+  //Instructions button
+  stroke(225, 130, 80);
+  strokeWeight(10);
+  fill(245, 150, 100);
+  rect(buttonX, buttonY + 150, buttonW, buttonH, 70);
+  strokeWeight(3);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  text("CONTROLS", buttonX + 150, buttonY + 200);
+  pop();
+
+  textAlign(CENTER, CENTER);
+  textSize(48);
+  text("ASTRO JUMP", 650, 100);
 }
 
 function mousePressed() {
@@ -112,27 +138,34 @@ function gameScreen() {
   }
 }
 function loseScreen() {
+  push();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
-  noFill();
-  stroke(0);
-  rect(buttonX, buttonY, buttonW, buttonH);
-  fill(0);
+  stroke(225, 130, 80);
+  strokeWeight(10);
+  fill(245, 150, 100);
+
+  rect(buttonX, buttonY, buttonW, buttonH, 70);
+  strokeWeight(3);
+  fill(255);
   textAlign(CENTER, CENTER);
-  textSize(26);
-  text("try again", width / 2, height / 4);
+  textSize(36);
+  text("AGAIN", buttonX + 150, buttonY + 50);
+  pop();
 }
 function winScreen() {
+  push();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  stroke(225, 130, 80);
+  strokeWeight(10);
+  fill(245, 150, 100);
+
+  rect(buttonX, buttonY, buttonW, buttonH, 70);
+  strokeWeight(3);
+  fill(255);
   textAlign(CENTER, CENTER);
-  textSize(26);
-  text("you win", width / 2, height / 4);
-  noFill();
-  stroke(0);
-  rect(buttonX, buttonY, buttonW, buttonH);
-  fill(0);
-  textAlign(CENTER, CENTER);
-  textSize(26);
-  text("Next level", width / 2, height / 4);
+  textSize(36);
+  text("Click to proceed to the next level", buttonX + 150, buttonY + 50);
+  pop();
 }
 
 function resetGame() {
@@ -175,6 +208,7 @@ function resetGame() {
 
 function nextlevel() {
   scrollSpeed = 6; // Faster scrolling
+  drawSpikePlatforms(scrollOffset);
 
   fallSpeed = 8;
 
@@ -869,20 +903,84 @@ class SpikePlatform {
 
   // Check collision with a character
   checkCollision(charX, charY, charWidth, charHeight, scrollOffset) {
-    return (
-      charX + charWidth > this.x - scrollOffset &&
-      charX < this.x - scrollOffset + this.width &&
-      charY + charHeight > this.y
-    );
+    let platformX = this.x - scrollOffset;
+    let spikeCount = this.width / 10;
+
+    for (let i = 0; i < spikeCount; i++) {
+      let spikeX = platformX + i * 10;
+      let spikeTipX = spikeX + 5;
+      let spikeBaseY = this.y;
+      let spikeTipY = this.y - 10;
+
+      if (
+        this.pointInTriangle(
+          charX,
+          charY,
+          spikeX,
+          spikeBaseY,
+          spikeTipX,
+          spikeTipY,
+          spikeX + 10,
+          spikeBaseY
+        ) ||
+        this.pointInTriangle(
+          charX + charWidth,
+          charY,
+          spikeX,
+          spikeBaseY,
+          spikeTipX,
+          spikeTipY,
+          spikeX + 10,
+          spikeBaseY
+        ) ||
+        this.pointInTriangle(
+          charX,
+          charY + charHeight,
+          spikeX,
+          spikeBaseY,
+          spikeTipX,
+          spikeTipY,
+          spikeX + 10,
+          spikeBaseY
+        ) ||
+        this.pointInTriangle(
+          charX + charWidth,
+          charY + charHeight,
+          spikeX,
+          spikeBaseY,
+          spikeTipX,
+          spikeTipY,
+          spikeX + 10,
+          spikeBaseY
+        )
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  pointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
+    let areaOrig = Math.abs((x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1));
+    let area1 = Math.abs((x1 - px) * (y2 - py) - (x2 - px) * (y1 - py));
+    let area2 = Math.abs((x2 - px) * (y3 - py) - (x3 - px) * (y2 - py));
+    let area3 = Math.abs((x3 - px) * (y1 - py) - (x1 - px) * (y3 - py));
+    return areaOrig === area1 + area2 + area3;
   }
 }
 let spikePlatforms = [];
 
 // Initialize some spike platforms
 function createSpikePlatforms() {
-  spikePlatforms.push(new SpikePlatform(300, 250, 70, 20));
-  spikePlatforms.push(new SpikePlatform(600, 300, 70, 20));
+  for (let i = 0; i < 0.1; i++) {
+    let x = random(300, 1200);
+    let y = random(200, 400);
+    let width = random(50, 100);
+    let height = 20;
+    spikePlatforms.push(new SpikePlatform(x, y, width, height));
+  }
 }
+
 function drawSpikePlatforms(scrollOffset) {
   for (let platform of spikePlatforms) {
     platform.draw(scrollOffset);
