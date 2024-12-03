@@ -24,22 +24,66 @@ let jumpCount2 = 0;
 
 coinVisible = true;
 let score = 0;
-let count = 0;
 const maxJump = 2;
 let fallingObjects = [];
 let fallSpeed = 4;
 let gameState = "start";
+let timer = 60;
+let intervalID;
+let isTimerActive = false;
+let buttonX = 500;
+let buttonY = 100;
+let buttonW = 200;
+let buttonH = 50;
 
 function startScreen() {
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  noFill();
+  stroke(0);
+  rect(buttonX, buttonY, buttonW, buttonH);
+  fill(0);
   textAlign(CENTER, CENTER);
   textSize(26);
   text("start", width / 2, height / 4);
 }
 
+function mousePressed() {
+  if (gameState === "start") {
+    if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY &&
+      mouseY <= buttonY + buttonH
+    ) {
+      gameState = "game"; // Change to game screen when button is clicked
+    }
+  } else if (gameState === "lose") {
+    if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY &&
+      mouseY <= buttonY + buttonH
+    ) {
+      resetGame();
+      gameState = "start";
+    }
+  } else if (gameState === "win") {
+    if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY &&
+      mouseY <= buttonY + buttonH
+    ) {
+      gameState = "nextLevel";
+    }
+  }
+}
+
 function gameScreen() {
   clear();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+
+  drawSpikePlatforms(scrollOffset);
 
   if (!char1Stopped || !char2Stopped) {
     moving();
@@ -49,39 +93,62 @@ function gameScreen() {
   drawCoins();
   fill(255);
   textSize(24);
-  text("Score: " + score, 10, 30);
+  text("Score: " + score, 70, 30, 3 / scrollOffset);
   fallEnemy();
   if (!char1Stopped) charOne();
   if (!char2Stopped) charTwo();
   if (char1Stopped && char2Stopped) {
     gameState = "lose";
   }
+  if (!isTimerActive) {
+    isTimerActive = true;
+    intervalID = setInterval(() => {
+      timer--;
+      if (timer <= 0) {
+        clearInterval(intervalID);
+        gameState = "win";
+      }
+    }, 1000);
+  }
 }
 function loseScreen() {
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  noFill();
+  stroke(0);
+  rect(buttonX, buttonY, buttonW, buttonH);
+  fill(0);
   textAlign(CENTER, CENTER);
-  textSize(36);
-  text("you died", width / 2, height / 4);
+  textSize(26);
+  text("try again", width / 2, height / 4);
+}
+function winScreen() {
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  textAlign(CENTER, CENTER);
+  textSize(26);
+  text("you win", width / 2, height / 4);
+  noFill();
+  stroke(0);
+  rect(buttonX, buttonY, buttonW, buttonH);
+  fill(0);
+  textAlign(CENTER, CENTER);
+  textSize(26);
+  text("Next level", width / 2, height / 4);
 }
 
 function resetGame() {
-  // Reset Character 1 variables
+  // Reset Character 1 and 2 variables
   x1 = 89;
   y1 = 342;
   jumpVelo1 = 0;
   isJump1 = false;
   jumpCount1 = 0;
   char1Stopped = false;
-
-  // Reset Character 2 variables
   x2 = 39;
   y2 = 332;
   jumpVelo2 = 0;
   isJump2 = false;
   jumpCount2 = 0;
   char2Stopped = false;
-
-  // Reset scrolling
   scrollOffset = 0;
 
   // Reset platforms
@@ -100,7 +167,52 @@ function resetGame() {
   score = 0;
 
   // Reset game state
-  gameState = "start"; // Or "game" if you want to directly start the game
+  gameState = "start";
+  timer = 60;
+  isTimerActive = false;
+  clearInterval(intervalID);
+}
+
+function nextlevel() {
+  scrollSpeed = 6; // Faster scrolling
+
+  fallSpeed = 8;
+
+  platformGapChance = 0.8; // Larger chance of platform gaps
+
+  enemySpawnRate = 0.08;
+  x1 = 70;
+  x2 = 70;
+
+  gameState = "game";
+  clear();
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+
+  if (!char1Stopped || !char2Stopped) {
+    moving(); // Ensure the moving logic is still working
+  }
+  drawPlatforms();
+  ground();
+  drawCoins();
+  fill(255);
+  textSize(24);
+  text("Score: " + score, 10, 30);
+  fallEnemy();
+  charOne();
+  charTwo();
+  if (char1Stopped && char2Stopped) {
+    gameState = "lose";
+  }
+  if (!isTimerActive) {
+    isTimerActive = true;
+    intervalID = setInterval(() => {
+      timer--;
+      if (timer <= 0) {
+        clearInterval(intervalID);
+        gameState = "win";
+      }
+    }, 1000);
+  }
 }
 
 // Platform array
@@ -122,6 +234,7 @@ let char2Stopped = false;
 
 function setup() {
   createCanvas(1200, 500);
+  createSpikePlatforms();
 }
 
 function moving() {
@@ -166,9 +279,9 @@ function moving() {
       }
     }
 
-    if (y1 > height || y2 >= height) {
-      char1Stopped = true;
-      char2Stopped = true;
+    if (y1 > height) {
+      // If character falls below the ground
+      char1Stopped = true; // Stop character
       coinVisible = false;
     }
   }
@@ -213,6 +326,16 @@ function moving() {
         jumpVelo2 = 0;
       }
     }
+
+    if (y2 > height) {
+      // If character falls below the ground
+      char2Stopped = true; // Stop character
+      coinVisible = false;
+    }
+    if (checkAllSpikeCollisions(x2, y2, xWidth2, yHeight2, scrollOffset)) {
+      char2Stopped = true;
+      gameState = "lose";
+    }
   }
 
   scrollOffset += scrollSpeed;
@@ -252,9 +375,13 @@ function draw() {
   if (gameState === "start") {
     startScreen();
   } else if (gameState === "game") {
-    gameScreen(); // Call the game screen function
+    gameScreen();
   } else if (gameState === "lose") {
     loseScreen();
+  } else if (gameState === "win") {
+    winScreen();
+  } else if (gameState === "nextLevel") {
+    nextlevel();
   }
 }
 
@@ -264,6 +391,11 @@ function keyPressed() {
   } else if (gameState === "lose" && keyCode === ENTER) {
     resetGame();
     gameState = "start";
+  } else if (gameState === "win" && keyCode === ENTER) {
+    resetGame();
+    gameState = "start";
+  } else if (gameState === "win" && keyCode === 49) {
+    gameState = "nextLevel";
   }
 
   if (keyCode === UP_ARROW && !char1Stopped && jumpCount1 < maxJump) {
@@ -524,6 +656,30 @@ function ground() {
     groundSegments.shift();
   }
 }
+class Coin {
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+  }
+
+  // Method to display the coin
+  draw() {
+    fill(255, 255, 0); // Coin color (yellow)
+    ellipse(this.x, this.y, this.width, this.height);
+  }
+
+  // Method to check if the coin is caught by a character
+  checkCollision(charX, charY, charWidth, charHeight) {
+    return (
+      this.x < charX + charWidth &&
+      this.x + this.width > charX &&
+      this.y < charY + charHeight &&
+      this.y + this.height > charY
+    );
+  }
+}
 
 function drawCoins() {
   fill(255, 255, 0);
@@ -581,8 +737,41 @@ class FallingObject {
   }
 
   draw() {
-    fill(200, 0, 0); // Red color for falling object
-    rect(this.x, this.y, this.width, this.height);
+    push();
+
+    fill(169, 169, 169);
+    stroke(105, 105, 105);
+    strokeWeight(4); // Stroke thickness
+    ellipse(this.x, this.y, this.width, this.height);
+
+    noFill();
+    strokeWeight(3);
+
+    let cx = this.x - 5;
+    let cy = this.y;
+
+    // Top left crack
+    line(cx - 15, cy - 20, cx - 5, cy - 30);
+    line(cx - 5, cy - 30, cx + 5, cy - 20);
+    line(cx - 5, cy - 30, cx + 5, cy - 35);
+    line(cx + 5, cy - 20, cx + 30, cy - 5);
+    line(cx + 5, cy - 20, cx - 15, cy - 10);
+
+    // Middle left crack
+    line(cx - 25, cy + 10, cx - 15, cy + 0);
+    line(cx - 15, cy + 0, cx + 5, cy + 10);
+    line(cx - 15, cy + 0, cx - 5, cy - 5);
+    line(cx - 5, cy - 5, cx + 5, cy - 10);
+    line(cx - 5, cy - 5, cx + 5, cy + 5);
+    line(cx + 5, cy + 10, cx + 10, cy + 15);
+    line(cx + 5, cy + 10, cx + 20, cy + 10);
+
+    // Bottom right crack
+    line(cx + 15, cy + 30, cx + 30, cy + 5);
+    line(cx + 25, cy + 15, cx + 10, cy + 20);
+    line(cx + 30, cy + 5, cx + 35, cy - 5);
+
+    pop();
   }
 
   checkCollision(charX, charY, charWidth, charHeight) {
@@ -602,10 +791,10 @@ class FallingObject {
 function fallEnemy() {
   // Spawn new falling object occasionally
   if (random(1) < 0.03) {
-    let objWidth = random(20, 40);
-    let objHeight = random(20, 40);
+    let objWidth = random(55, 55);
+    let objHeight = random(55, 55);
     let objX = random(0, width);
-    let objSpeed = random(2, 5);
+    let objSpeed = random(2, 6);
 
     fallingObjects.push(
       new FallingObject(objX, 0, objWidth, objHeight, objSpeed)
@@ -655,4 +844,64 @@ function drawGradientBackground(color1, color2, color3) {
     fill(c);
     rect(0, y, width, 1);
   }
+}
+class SpikePlatform {
+  constructor(x, y, width, height) {
+    this.x = x; // X-coordinate
+    this.y = y; // Y-coordinate
+    this.width = width; // Width of the platform
+    this.height = height; // Height of the platform
+  }
+
+  // Draw the platform and its spikes
+  draw(scrollOffset) {
+    fill(200, 50, 50); // Red color for spikes
+    stroke(0); // Outline for spikes
+    rect(this.x - scrollOffset, this.y, this.width, this.height);
+
+    // Draw spikes
+    let spikeCount = this.width / 10;
+    for (let i = 0; i < spikeCount; i++) {
+      let spikeX = this.x - scrollOffset + i * 10;
+      triangle(spikeX, this.y, spikeX + 5, this.y - 10, spikeX + 10, this.y);
+    }
+  }
+
+  // Check collision with a character
+  checkCollision(charX, charY, charWidth, charHeight, scrollOffset) {
+    return (
+      charX + charWidth > this.x - scrollOffset &&
+      charX < this.x - scrollOffset + this.width &&
+      charY + charHeight > this.y
+    );
+  }
+}
+let spikePlatforms = [];
+
+// Initialize some spike platforms
+function createSpikePlatforms() {
+  spikePlatforms.push(new SpikePlatform(300, 250, 70, 20));
+  spikePlatforms.push(new SpikePlatform(600, 300, 70, 20));
+}
+function drawSpikePlatforms(scrollOffset) {
+  for (let platform of spikePlatforms) {
+    platform.draw(scrollOffset);
+  }
+}
+
+function checkAllSpikeCollisions(
+  charX,
+  charY,
+  charWidth,
+  charHeight,
+  scrollOffset
+) {
+  for (let platform of spikePlatforms) {
+    if (
+      platform.checkCollision(charX, charY, charWidth, charHeight, scrollOffset)
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
