@@ -1,3 +1,8 @@
+//setup function
+function setup() {
+  createCanvas(1200, 500);
+  createSpikePlatforms();
+}
 // Variables char1
 let x1 = 89;
 let y1 = 342;
@@ -21,13 +26,13 @@ let jump2 = -15;
 let jumpVelo2 = 0;
 let isJump2 = false;
 let jumpCount2 = 0;
-
+//variables not affected by char
 coinVisible = true;
 let score = 0;
 const maxJump = 2;
 let fallingObjects = [];
 let fallSpeed = 4;
-let gameState = "start";
+let gameState = "controls";
 let timer = 60;
 let intervalID;
 let isTimerActive = false;
@@ -35,14 +40,86 @@ let buttonX = 500;
 let buttonY = 200;
 let buttonW = 300;
 let buttonH = 100;
-
+let myFont;
+//font function
+function preload() {
+  myFont = loadFont("Hämtade filer/Bubble3D.ttf");
+}
+//makes the buttons clickable
+function mousePressed() {
+  if (gameState === "start") {
+    if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY &&
+      mouseY <= buttonY + buttonH
+    ) {
+      gameState = "game"; // Change to game screen when button is clicked
+    } else if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY + 150 &&
+      mouseY <= buttonY + 150 + buttonH
+    ) {
+      gameState = "controls";
+    }
+  } else if (gameState === "controls") {
+    if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY + 150 &&
+      mouseY <= buttonY + 150 + buttonH
+    ) {
+      gameState = "start";
+    }
+  } else if (gameState === "lose") {
+    if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY &&
+      mouseY <= buttonY + buttonH
+    ) {
+      resetGame();
+      gameState = "start";
+    }
+  } else if (gameState === "win") {
+    if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY &&
+      mouseY <= buttonY + buttonH
+    ) {
+      gameState = "nextLevel2";
+    }
+  } else if (gameState === "win2") {
+    if (
+      mouseX >= buttonX &&
+      mouseX <= buttonX + buttonW &&
+      mouseY >= buttonY &&
+      mouseY <= buttonY + buttonH
+    ) {
+      gameState = "nextLevel3";
+    }
+  }
+}
+//the stars on the starscreen
+function drawStars() {
+  fill(255); // White color
+  noStroke();
+  let sx = random(width); // Random x position within the canvas width
+  let sy = random(height);
+  ellipse(sx, sy, 3);
+}
+//the startscreen
 function startScreen() {
+  drawStars();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
   push();
   let rectX = 200;
   let rectY = 220;
   let rectWidth = 400;
   let rectHeight = 120;
+  starsVisible = true;
 
   //start button
   stroke(225, 130, 80);
@@ -52,6 +129,7 @@ function startScreen() {
   rect(buttonX, buttonY, buttonW, buttonH, 70);
   strokeWeight(3);
   fill(255);
+  textFont(myFont);
   textAlign(CENTER, CENTER);
   textSize(36);
   text("START", buttonX + 150, buttonY + 50);
@@ -72,42 +150,11 @@ function startScreen() {
   textSize(48);
   text("ASTRO JUMP", 650, 100);
 }
-
-function mousePressed() {
-  if (gameState === "start") {
-    if (
-      mouseX >= buttonX &&
-      mouseX <= buttonX + buttonW &&
-      mouseY >= buttonY &&
-      mouseY <= buttonY + buttonH
-    ) {
-      gameState = "game"; // Change to game screen when button is clicked
-    }
-  } else if (gameState === "lose") {
-    if (
-      mouseX >= buttonX &&
-      mouseX <= buttonX + buttonW &&
-      mouseY >= buttonY &&
-      mouseY <= buttonY + buttonH
-    ) {
-      resetGame();
-      gameState = "start";
-    }
-  } else if (gameState === "win") {
-    if (
-      mouseX >= buttonX &&
-      mouseX <= buttonX + buttonW &&
-      mouseY >= buttonY &&
-      mouseY <= buttonY + buttonH
-    ) {
-      gameState = "nextLevel";
-    }
-  }
-}
-
+//the game screen
 function gameScreen() {
   clear();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  strokeWeight(1);
 
   drawSpikePlatforms(scrollOffset);
 
@@ -137,6 +184,7 @@ function gameScreen() {
     }, 1000);
   }
 }
+//the lose screen
 function loseScreen() {
   push();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
@@ -150,8 +198,10 @@ function loseScreen() {
   textAlign(CENTER, CENTER);
   textSize(36);
   text("AGAIN", buttonX + 150, buttonY + 50);
+  text("you catched " + score + " coins", buttonX + 150, buttonY + 150);
   pop();
 }
+//the winscreen for level 1
 function winScreen() {
   push();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
@@ -159,15 +209,107 @@ function winScreen() {
   strokeWeight(10);
   fill(245, 150, 100);
 
-  rect(buttonX, buttonY, buttonW, buttonH, 70);
+  rect(buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+
+  rect(buttonX - 100, buttonY, buttonW + 200, buttonH, 70);
   strokeWeight(3);
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(36);
   text("Click to proceed to the next level", buttonX + 150, buttonY + 50);
+  text("1", buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  //2
+  fill(129, 129, 129);
+  stroke(0);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  rect(buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  fill(255);
+  text("2", buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  //3
+  fill(129, 129, 129);
+  stroke(0);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  rect(buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  fill(255);
+  text("3", buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20, 70);
   pop();
 }
+//the winscreen for level 2
+function winScreen2() {
+  push();
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  stroke(225, 130, 80);
+  strokeWeight(10);
+  fill(245, 150, 100);
 
+  rect(buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+
+  rect(buttonX - 100, buttonY, buttonW + 200, buttonH, 70);
+  strokeWeight(3);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  text("Click to proceed to the next level", buttonX + 150, buttonY + 50);
+  text("1", buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  //2
+
+  fill(245, 150, 100);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+
+  rect(buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  fill(255);
+  text("2", buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  //3
+  fill(129, 129, 129);
+  stroke(0);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  rect(buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  fill(255);
+  text("3", buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  pop();
+}
+//the winscreen for level 3
+function winScreen3() {
+  push();
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  stroke(225, 130, 80);
+  strokeWeight(10);
+  fill(245, 150, 100);
+
+  rect(buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+
+  rect(buttonX - 100, buttonY, buttonW + 200, buttonH, 70);
+  strokeWeight(10);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  text("congratulations, you did it!!", buttonX + 150, buttonY + 50);
+  text("1", buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  //2
+
+  fill(245, 150, 100);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+
+  rect(buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  fill(255);
+  text("2", buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  //3
+  fill(245, 150, 100);
+  stroke(0);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  stroke(225, 130, 80);
+  rect(buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  fill(255);
+  text("3", buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  pop();
+}
+//resetting the game
 function resetGame() {
   // Reset Character 1 and 2 variables
   x1 = 89;
@@ -183,6 +325,7 @@ function resetGame() {
   jumpCount2 = 0;
   char2Stopped = false;
   scrollOffset = 0;
+  scrollSpeed = 3;
 
   // Reset platforms
   platforms = [{ x: 165, y: 300, width: 100, height: 20 }];
@@ -204,19 +347,30 @@ function resetGame() {
   timer = 60;
   isTimerActive = false;
   clearInterval(intervalID);
+  drawSpikePlatforms(scrollOffset);
 }
-
-function nextlevel() {
+//the gamescreen for level 2
+function nextLevel2() {
   scrollSpeed = 6; // Faster scrolling
   drawSpikePlatforms(scrollOffset);
 
   fallSpeed = 8;
 
-  platformGapChance = 0.8; // Larger chance of platform gaps
+  platformGapChance = 1; // Larger chance of platform gaps
 
-  enemySpawnRate = 0.08;
   x1 = 70;
   x2 = 70;
+
+  if (random(1) < 0.07) {
+    let objWidth = random(55, 55);
+    let objHeight = random(55, 55);
+    let objX = random(0, width);
+    let objSpeed = random(2, 5);
+
+    fallingObjects.push(
+      new FallingObject(objX, 0, objWidth, objHeight, objSpeed)
+    );
+  }
 
   gameState = "game";
   clear();
@@ -243,12 +397,138 @@ function nextlevel() {
       timer--;
       if (timer <= 0) {
         clearInterval(intervalID);
-        gameState = "win";
+        gameState = "win2";
       }
     }, 1000);
   }
 }
+//the gamescreen for level 3
+function nextLevel3() {
+  scrollSpeed = 8; // Faster scrolling
+  drawSpikePlatforms(scrollOffset);
 
+  fallSpeed = 8;
+
+  platformGapChance = 1; // Larger chance of platform gaps
+
+  x1 = 70;
+  x2 = 70;
+
+  if (random(1) < 0.08) {
+    let objWidth = random(55, 55);
+    let objHeight = random(55, 55);
+    let objX = random(0, width);
+    let objSpeed = random(2, 5);
+
+    fallingObjects.push(
+      new FallingObject(objX, 0, objWidth, objHeight, objSpeed)
+    );
+  }
+
+  gameState = "game";
+  clear();
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+
+  if (!char1Stopped || !char2Stopped) {
+    moving(); // Ensure the moving logic is still working
+  }
+  drawPlatforms();
+  ground();
+  drawCoins();
+  fill(255);
+  textSize(24);
+  text("Score: " + score, 10, 30);
+  fallEnemy();
+  charOne();
+  charTwo();
+  if (char1Stopped && char2Stopped) {
+    gameState = "lose";
+  }
+  if (!isTimerActive) {
+    isTimerActive = true;
+    intervalID = setInterval(() => {
+      timer--;
+      if (timer <= 0) {
+        clearInterval(intervalID);
+        gameState = "win3";
+      }
+    }, 1000);
+  }
+}
+//control screen
+function controls() {
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+  strokeWeight(3);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(15);
+  text(
+    "use the arrow keys to move the green alien, WAD keys for the blue alien",
+    buttonX + 150,
+    buttonY + 50
+  );
+  text(
+    "Avoid holes, asterioids falling from the sky and dangerous spike platforms",
+    buttonX + 150,
+    buttonY + 70
+  );
+  text(
+    "Double jump by pressing the jump button twice (W/⬆)",
+    buttonX + 150,
+    buttonY + 90
+  );
+  text("", buttonX + 150, buttonY + 50);
+  fill(245, 150, 100);
+  rect(buttonX, buttonY + 150, buttonW, buttonH, 70);
+  strokeWeight(3);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  text("back", buttonX + 150, buttonY + 200);
+
+  rect(408, 107, 80, 80, 30);
+  rect(518, 107, 80, 80, 30);
+  rect(460, 18, 80, 80, 30);
+
+  rect(658, 107, 80, 80, 30);
+  rect(770, 107, 80, 80, 30);
+  rect(710, 18, 80, 80, 30);
+
+  stroke(0);
+  fill(0);
+  text("A", 447, 146);
+  text("D", 560, 146);
+  text("W", 500, 58);
+
+  text("⮕", 812, 146);
+  text("⬅", 695, 146);
+  text("⬆", 750, 58);
+}
+//how the gamestates works and show up
+function draw() {
+  if (gameState === "start") {
+    startScreen();
+    for (let i = 0; i < 100; i++) {
+      drawStars();
+    }
+  } else if (gameState === "game") {
+    gameScreen();
+  } else if (gameState === "lose") {
+    loseScreen();
+  } else if (gameState === "win") {
+    winScreen();
+  } else if (gameState === "nextLevel2") {
+    nextLevel2();
+  } else if (gameState === "win2") {
+    winScreen2();
+  } else if (gameState === "nextLevel3") {
+    nextLevel3();
+  } else if (gameState === "win3") {
+    winScreen3();
+  } else if (gameState === "controls") {
+    controls();
+  }
+}
 // Platform array
 let platforms = [{ x: 165, y: 300, width: 100, height: 20 }];
 
@@ -259,18 +539,14 @@ let coin = [{ x: 200, y: 300, width: 20, height: 20 }];
 let scrollOffset = 0;
 let scrollSpeed = 3;
 
-// Ground segments
+// The ground
 let groundSegments = [{ x: 0, width: 1200 }];
 
-// Stop character
+// Making the characters not stop
 let char1Stopped = false;
 let char2Stopped = false;
 
-function setup() {
-  createCanvas(1200, 500);
-  createSpikePlatforms();
-}
-
+//how the character moves, how it behaves on platforms, platform generating, how character dies
 function moving() {
   if (!char1Stopped) {
     if (keyIsDown(RIGHT_ARROW)) {
@@ -374,7 +650,7 @@ function moving() {
 
   scrollOffset += scrollSpeed;
 }
-
+//checks if character is on a specific platform
 function isOnPlatform(x, y, width, height, velocity, platform) {
   return (
     x + width > platform.x - scrollOffset &&
@@ -383,14 +659,14 @@ function isOnPlatform(x, y, width, height, velocity, platform) {
     y + height + velocity >= platform.y
   );
 }
-
+//checks is character on any platform in the game
 function isOnAnyPlatform(x, y, width, height, velocity) {
   for (let platform of platforms) {
     if (isOnPlatform(x, y, width, height, velocity, platform)) {
       return true;
     }
   }
-
+  //checks if the character standing on ground
   for (let segment of groundSegments) {
     if (
       x + width > segment.x - scrollOffset &&
@@ -404,34 +680,63 @@ function isOnAnyPlatform(x, y, width, height, velocity) {
 
   return false;
 }
+//how the platforms look and making them appear
+function drawPlatforms() {
+  fill(245, 150, 100);
+  if (random(1) < 0.015) {
+    let platformWidth = random(80, 120);
+    let platformHeight = 20;
+    let platformX = scrollOffset + width + random(50, 250);
+    let platformY = random(350, 200);
 
-function draw() {
-  if (gameState === "start") {
-    startScreen();
-  } else if (gameState === "game") {
-    gameScreen();
-  } else if (gameState === "lose") {
-    loseScreen();
-  } else if (gameState === "win") {
-    winScreen();
-  } else if (gameState === "nextLevel") {
-    nextlevel();
+    platforms.push({
+      x: platformX,
+      y: platformY,
+      width: platformWidth,
+      height: platformHeight,
+    });
+  }
+
+  platforms = platforms.filter(
+    (platform) => platform.x - scrollOffset + platform.width > 0
+  );
+
+  for (let platform of platforms) {
+    rect(
+      platform.x - scrollOffset,
+      platform.y,
+      platform.width,
+      platform.height
+    );
+  }
+}
+//manages the ground and the gaps
+function ground() {
+  fill(245, 150, 100);
+
+  for (let i = 0; i < groundSegments.length; i++) {
+    let segment = groundSegments[i];
+    rect(segment.x - scrollOffset, 382, segment.width, height - 382);
+  }
+
+  let lastSegment = groundSegments[groundSegments.length - 1];
+  if (lastSegment.x - scrollOffset + lastSegment.width / 2 < width) {
+    let gapChance = random(1) < 0.6;
+    let gapWidth = gapChance ? random(80, 250) : 0;
+
+    groundSegments.push({
+      x: lastSegment.x + lastSegment.width + gapWidth,
+      width: random(800, 100),
+    });
+  }
+
+  if (groundSegments[0].x - scrollOffset + groundSegments[0].width < 0) {
+    groundSegments.shift();
   }
 }
 
+//double jump and jump
 function keyPressed() {
-  if (gameState === "start" && keyCode === ENTER) {
-    gameState = "game"; // Start the game
-  } else if (gameState === "lose" && keyCode === ENTER) {
-    resetGame();
-    gameState = "start";
-  } else if (gameState === "win" && keyCode === ENTER) {
-    resetGame();
-    gameState = "start";
-  } else if (gameState === "win" && keyCode === 49) {
-    gameState = "nextLevel";
-  }
-
   if (keyCode === UP_ARROW && !char1Stopped && jumpCount1 < maxJump) {
     isJump1 = true;
     jumpVelo1 = jump1;
@@ -443,7 +748,7 @@ function keyPressed() {
     jumpCount2++;
   }
 }
-
+//character 1 design
 function charOne() {
   let baseY = y1 + 230; // Adjusted for ground level
 
@@ -540,7 +845,7 @@ function charOne() {
   arc(x1 - 43, baseY - 231, 3, 10, 7, 3, PI);
   pop();
 }
-
+//character 2 design
 function charTwo() {
   let baseY = y2 + 230; // Adjusted for ground level
 
@@ -636,60 +941,7 @@ function charTwo() {
   arc(x2 - 43, baseY - 231, 3, 10, 7, 3, PI);
   pop();
 }
-
-function drawPlatforms() {
-  fill(245, 150, 100);
-  if (random(1) < 0.015) {
-    let platformWidth = random(80, 120);
-    let platformHeight = 20;
-    let platformX = scrollOffset + width + random(50, 250);
-    let platformY = random(350, 200);
-
-    platforms.push({
-      x: platformX,
-      y: platformY,
-      width: platformWidth,
-      height: platformHeight,
-    });
-  }
-
-  platforms = platforms.filter(
-    (platform) => platform.x - scrollOffset + platform.width > 0
-  );
-
-  for (let platform of platforms) {
-    rect(
-      platform.x - scrollOffset,
-      platform.y,
-      platform.width,
-      platform.height
-    );
-  }
-}
-
-function ground() {
-  fill(245, 150, 100);
-
-  for (let i = 0; i < groundSegments.length; i++) {
-    let segment = groundSegments[i];
-    rect(segment.x - scrollOffset, 382, segment.width, height - 382);
-  }
-
-  let lastSegment = groundSegments[groundSegments.length - 1];
-  if (lastSegment.x - scrollOffset + lastSegment.width / 2 < width) {
-    let gapChance = random(1) < 0.6;
-    let gapWidth = gapChance ? random(80, 250) : 0;
-
-    groundSegments.push({
-      x: lastSegment.x + lastSegment.width + gapWidth,
-      width: random(800, 100),
-    });
-  }
-
-  if (groundSegments[0].x - scrollOffset + groundSegments[0].width < 0) {
-    groundSegments.shift();
-  }
-}
+// the coin class
 class Coin {
   constructor(x, y, width, height) {
     this.x = x;
@@ -714,7 +966,7 @@ class Coin {
     );
   }
 }
-
+//coin design
 function drawCoins() {
   fill(255, 255, 0);
   if (random(1) < 0.01) {
@@ -756,7 +1008,7 @@ function drawCoins() {
     }
   }
 }
-
+//fall object class
 class FallingObject {
   constructor(x, y, width, height, speed) {
     this.x = x;
@@ -821,14 +1073,14 @@ class FallingObject {
     return this.y > height;
   }
 }
-
+//spawining coins and check collisons with char
 function fallEnemy() {
   // Spawn new falling object occasionally
   if (random(1) < 0.03) {
     let objWidth = random(55, 55);
     let objHeight = random(55, 55);
     let objX = random(0, width);
-    let objSpeed = random(2, 6);
+    let objSpeed = random(2, 5);
 
     fallingObjects.push(
       new FallingObject(objX, 0, objWidth, objHeight, objSpeed)
@@ -879,21 +1131,20 @@ function drawGradientBackground(color1, color2, color3) {
     rect(0, y, width, 1);
   }
 }
+//the spikeplatform class
 class SpikePlatform {
   constructor(x, y, width, height) {
-    this.x = x; // X-coordinate
-    this.y = y; // Y-coordinate
-    this.width = width; // Width of the platform
-    this.height = height; // Height of the platform
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
   }
 
-  // Draw the platform and its spikes
   draw(scrollOffset) {
-    fill(200, 50, 50); // Red color for spikes
-    stroke(0); // Outline for spikes
+    fill(129, 129, 129);
     rect(this.x - scrollOffset, this.y, this.width, this.height);
 
-    // Draw spikes
+    fill(200, 50, 50); // Spikes color
     let spikeCount = this.width / 10;
     for (let i = 0; i < spikeCount; i++) {
       let spikeX = this.x - scrollOffset + i * 10;
@@ -901,7 +1152,6 @@ class SpikePlatform {
     }
   }
 
-  // Check collision with a character
   checkCollision(charX, charY, charWidth, charHeight, scrollOffset) {
     let platformX = this.x - scrollOffset;
     let spikeCount = this.width / 10;
@@ -968,25 +1218,48 @@ class SpikePlatform {
     return areaOrig === area1 + area2 + area3;
   }
 }
+//spike platform array
 let spikePlatforms = [];
 
-// Initialize some spike platforms
+// generate spike platform
 function createSpikePlatforms() {
-  for (let i = 0; i < 0.1; i++) {
-    let x = random(300, 1200);
-    let y = random(200, 400);
-    let width = random(50, 100);
-    let height = 20;
-    spikePlatforms.push(new SpikePlatform(x, y, width, height));
+  if (random(1) < 0.005) {
+    let objWidth = random(55, 100); // Random width
+    let objHeight = 20;
+    let objX = scrollOffset + width + random(50, 300);
+    let objY = random(200, 400);
+
+    // Check if the new platform overlaps with any existing ones
+    let overlap = spikePlatforms.some((platform) => {
+      return (
+        objX < platform.x + platform.width &&
+        objX + objWidth > platform.x &&
+        objY < platform.y + platform.height &&
+        objY + objHeight > platform.y
+      );
+    });
+
+    // Only add the new platform if it doesn't overlap
+    if (!overlap) {
+      spikePlatforms.push(new SpikePlatform(objX, objY, objWidth, objHeight));
+    }
   }
 }
-
+//draw spikeplatforms
 function drawSpikePlatforms(scrollOffset) {
+  createSpikePlatforms();
+
+  // Filter out platforms that are no longer on screen
+  spikePlatforms = spikePlatforms.filter(
+    (platform) => platform.x - scrollOffset + platform.width > 0
+  );
+
+  // Draw remaining platforms
   for (let platform of spikePlatforms) {
     platform.draw(scrollOffset);
   }
 }
-
+//if character collide with spikeplatform
 function checkAllSpikeCollisions(
   charX,
   charY,
