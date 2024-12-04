@@ -8,7 +8,7 @@ let x1 = 89;
 let y1 = 342;
 let xWidth1 = 40;
 let yHeight1 = 40;
-let moveStep1 = 4;
+let moveStep1 = 3;
 let gravity1 = 1;
 let jump1 = -15;
 let jumpVelo1 = 0;
@@ -41,7 +41,7 @@ let buttonX = 500;
 let buttonY = 200;
 let buttonW = 300;
 let buttonH = 100;
-let myFont;
+let stars = []; // Array to store star positions
 
 //makes the buttons clickable
 function mousePressed() {
@@ -111,10 +111,28 @@ function drawStars() {
 //the startscreen
 function startScreen() {
   drawStars();
+
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
   push();
   starsVisible = true;
+  moon();
+  drawStars();
+  push();
+  translate(200, 100);
+  scale(0.8);
+  clouds();
+  pop();
 
+  push();
+  translate(80, 150);
+  scale(0.6);
+  clouds();
+  pop();
+
+  push();
+  translate(400, 60);
+  clouds();
+  pop();
   //start button
   stroke(149, 156, 235);
   strokeWeight(10);
@@ -136,7 +154,7 @@ function startScreen() {
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(36);
-  text("CONTROLS", buttonX + 150, buttonY + 200);
+  text("Instructions", buttonX + 150, buttonY + 200);
   pop();
   //the title
   fill(159, 166, 255);
@@ -150,6 +168,24 @@ function gameScreen() {
   clear();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
   strokeWeight(1);
+  moon();
+  drawStars();
+  push();
+  translate(200, 100);
+  scale(0.8);
+  clouds();
+  pop();
+
+  push();
+  translate(80, 150);
+  scale(0.6);
+  clouds();
+  pop();
+
+  push();
+  translate(400, 60);
+  clouds();
+  pop();
 
   drawSpikePlatforms(scrollOffset);
 
@@ -183,9 +219,9 @@ function gameScreen() {
 function loseScreen() {
   push();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
-  stroke(225, 130, 80);
+  stroke(149, 156, 235);
   strokeWeight(10);
-  fill(245, 150, 100);
+  fill(159, 166, 255);
 
   rect(buttonX, buttonY, buttonW, buttonH, 70);
   strokeWeight(3);
@@ -1072,7 +1108,7 @@ class FallingObject {
 //spawining and check collisons with char
 function fallEnemy() {
   // Spawn new falling object occasionally
-  if (random(1) < 0.03) {
+  if (random(1) < 0.02) {
     let objWidth = random(55, 55);
     let objHeight = random(55, 55);
     let objX = random(0, width);
@@ -1219,7 +1255,7 @@ let spikePlatforms = [];
 
 // generate spike platform
 function createSpikePlatforms() {
-  if (random(1) < 0.005) {
+  if (random(1) < 0.003) {
     let objWidth = random(55, 100); // Random width
     let objHeight = 20;
     let objX = scrollOffset + width + random(50, 300);
@@ -1272,3 +1308,94 @@ function checkAllSpikeCollisions(
   }
   return false;
 }
+function backDrop() {
+  // Generate 100 stars at random positions within the whole canvas
+  for (let i = 0; i < 100; i++) {
+    let star = {
+      x: random(width), // Random x position within the canvas width
+      y: random(height), // Random y position within the canvas height
+    };
+    stars.push(star); // Add the star to the array
+  }
+
+  // Draw the gradient background
+  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
+
+  // Draw stars from the pre-generated positions
+  for (let i = 0; i < stars.length; i++) {
+    drawStar(stars[i].x, stars[i].y); // Draw each star at its position
+  }
+
+  // Draw clouds and moon
+  clouds();
+  moon();
+
+  push();
+  translate(200, 100);
+  scale(0.8);
+  clouds();
+  pop();
+
+  push();
+  translate(80, 150);
+  scale(0.6);
+  clouds();
+  pop();
+
+  push();
+  translate(400, 60);
+  clouds();
+  pop();
+}
+
+function drawGradientBackground(color1, color2, color3) {
+  noStroke(); // Remove stroke for a smooth gradient
+
+  // First gradient: color1 to color2
+  for (let y = 0; y < height / 2; y++) {
+    let inter = map(y, 0, height / 2, 0, 1); // Transition factor for first half
+    let c = lerpColor(color(color1), color(color2), inter); // Interpolate between colors
+    fill(c);
+    rect(0, y, width, 1); // Draw a thin rectangle
+  }
+
+  // Second gradient: color2 to color3
+  for (let y = height / 2; y < height; y++) {
+    let inter = map(y, height / 2, height, 0, 1); // Transition factor for second half
+    let c = lerpColor(color(color2), color(color3), inter); // Interpolate between colors
+    fill(c);
+    rect(0, y, width, 1); // Draw a thin rectangle
+  }
+}
+
+function clouds() {
+  push();
+  fill("#EFA7C9");
+  ellipse(125, 100, 70, 60);
+  rect(58, 115, 200, 20, 15);
+  pop();
+}
+
+function moon() {
+  fill("#E8DAEF");
+  ellipse(930, 120, 160);
+
+  fill("#6C3483");
+  ellipse(904, 100, 32);
+  ellipse(960, 100, 32);
+
+  fill("#A569BD");
+  ellipse(974, 140, 24);
+  ellipse(960, 162, 18);
+  ellipse(919, 64, 18);
+}
+
+function drawStar(x, y) {
+  fill(255); // White color for stars
+  noStroke();
+  ellipse(x, y, 3); // Draw a star at the given position
+}
+
+//other sources
+//https://p5js.org/
+//https://youtu.be/T-HGdc8L-7w?si=LnlGBQj76fS5QpAi
