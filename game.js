@@ -26,13 +26,14 @@ let jump2 = -15;
 let jumpVelo2 = 0;
 let isJump2 = false;
 let jumpCount2 = 0;
+
 //variables not affected by char
 coinVisible = true;
 let score = 0;
 const maxJump = 2;
 let fallingObjects = [];
-let fallSpeed = 4;
-let gameState = "controls";
+//let fallSpeed = 4;
+let gameState = "start";
 let timer = 60;
 let intervalID;
 let isTimerActive = false;
@@ -41,9 +42,10 @@ let buttonY = 200;
 let buttonW = 300;
 let buttonH = 100;
 let myFont;
-//font function
+
+//font function https://p5js.org/reference/p5/loadFont/
 function preload() {
-  myFont = loadFont("Hämtade filer/Bubble3D.ttf");
+  myFont = loadFont("/Bubble3D.ttf");
 }
 //makes the buttons clickable
 function mousePressed() {
@@ -115,17 +117,12 @@ function startScreen() {
   drawStars();
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
   push();
-  let rectX = 200;
-  let rectY = 220;
-  let rectWidth = 400;
-  let rectHeight = 120;
   starsVisible = true;
 
   //start button
-  stroke(225, 130, 80);
+  stroke(149, 156, 235);
   strokeWeight(10);
-  fill(245, 150, 100);
-
+  fill(159, 166, 255);
   rect(buttonX, buttonY, buttonW, buttonH, 70);
   strokeWeight(3);
   fill(255);
@@ -135,9 +132,9 @@ function startScreen() {
   text("START", buttonX + 150, buttonY + 50);
 
   //Instructions button
-  stroke(225, 130, 80);
+  stroke(149, 156, 235);
   strokeWeight(10);
-  fill(245, 150, 100);
+  fill(159, 166, 255);
   rect(buttonX, buttonY + 150, buttonW, buttonH, 70);
   strokeWeight(3);
   fill(255);
@@ -145,7 +142,10 @@ function startScreen() {
   textSize(36);
   text("CONTROLS", buttonX + 150, buttonY + 200);
   pop();
-
+  //the title
+  fill(159, 166, 255);
+  stroke(255);
+  textFont(myFont);
   textAlign(CENTER, CENTER);
   textSize(48);
   text("ASTRO JUMP", 650, 100);
@@ -166,7 +166,7 @@ function gameScreen() {
   drawCoins();
   fill(255);
   textSize(24);
-  text("Score: " + score, 70, 30, 3 / scrollOffset);
+  text("Score: " + score, 70, 30, 3);
   fallEnemy();
   if (!char1Stopped) charOne();
   if (!char2Stopped) charTwo();
@@ -197,7 +197,7 @@ function loseScreen() {
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(36);
-  text("AGAIN", buttonX + 150, buttonY + 50);
+  text("TRY AGAIN", buttonX + 150, buttonY + 50);
   text("you catched " + score + " coins", buttonX + 150, buttonY + 150);
   pop();
 }
@@ -211,7 +211,7 @@ function winScreen() {
 
   rect(buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
 
-  rect(buttonX - 100, buttonY, buttonW + 200, buttonH, 70);
+  rect(buttonX - 110, buttonY, buttonW + 230, buttonH, 70);
   strokeWeight(3);
   fill(255);
   textAlign(CENTER, CENTER);
@@ -246,7 +246,7 @@ function winScreen2() {
 
   rect(buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
 
-  rect(buttonX - 100, buttonY, buttonW + 200, buttonH, 70);
+  rect(buttonX - 110, buttonY, buttonW + 220, buttonH, 70);
   strokeWeight(3);
   fill(255);
   textAlign(CENTER, CENTER);
@@ -356,8 +356,6 @@ function nextLevel2() {
 
   fallSpeed = 8;
 
-  platformGapChance = 1; // Larger chance of platform gaps
-
   x1 = 70;
   x2 = 70;
 
@@ -374,10 +372,9 @@ function nextLevel2() {
 
   gameState = "game";
   clear();
-  drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
 
   if (!char1Stopped || !char2Stopped) {
-    moving(); // Ensure the moving logic is still working
+    moving();
   }
   drawPlatforms();
   ground();
@@ -478,7 +475,8 @@ function controls() {
     buttonY + 90
   );
   text("", buttonX + 150, buttonY + 50);
-  fill(245, 150, 100);
+  fill(159, 166, 255);
+  stroke(149, 156, 235);
   rect(buttonX, buttonY + 150, buttonW, buttonH, 70);
   strokeWeight(3);
   fill(255);
@@ -495,11 +493,13 @@ function controls() {
   rect(710, 18, 80, 80, 30);
 
   stroke(0);
-  fill(0);
+  fill(149);
   text("A", 447, 146);
   text("D", 560, 146);
   text("W", 500, 58);
 
+  fill(0);
+  textFont("sans-serif");
   text("⮕", 812, 146);
   text("⬅", 695, 146);
   text("⬆", 750, 58);
@@ -659,7 +659,7 @@ function isOnPlatform(x, y, width, height, velocity, platform) {
     y + height + velocity >= platform.y
   );
 }
-//checks is character on any platform in the game
+//checks is character on any platform or ground in the game
 function isOnAnyPlatform(x, y, width, height, velocity) {
   for (let platform of platforms) {
     if (isOnPlatform(x, y, width, height, velocity, platform)) {
@@ -683,6 +683,7 @@ function isOnAnyPlatform(x, y, width, height, velocity) {
 //how the platforms look and making them appear
 function drawPlatforms() {
   fill(245, 150, 100);
+
   if (random(1) < 0.015) {
     let platformWidth = random(80, 120);
     let platformHeight = 20;
@@ -1073,7 +1074,7 @@ class FallingObject {
     return this.y > height;
   }
 }
-//spawining coins and check collisons with char
+//spawining and check collisons with char
 function fallEnemy() {
   // Spawn new falling object occasionally
   if (random(1) < 0.03) {
