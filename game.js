@@ -43,10 +43,6 @@ let buttonW = 300;
 let buttonH = 100;
 let myFont;
 
-//font function https://p5js.org/reference/p5/loadFont/
-function preload() {
-  myFont = loadFont("/Bubble3D.ttf");
-}
 //makes the buttons clickable
 function mousePressed() {
   if (gameState === "start") {
@@ -126,7 +122,7 @@ function startScreen() {
   rect(buttonX, buttonY, buttonW, buttonH, 70);
   strokeWeight(3);
   fill(255);
-  textFont(myFont);
+
   textAlign(CENTER, CENTER);
   textSize(36);
   text("START", buttonX + 150, buttonY + 50);
@@ -145,7 +141,6 @@ function startScreen() {
   //the title
   fill(159, 166, 255);
   stroke(255);
-  textFont(myFont);
   textAlign(CENTER, CENTER);
   textSize(48);
   text("ASTRO JUMP", 650, 100);
@@ -659,7 +654,7 @@ function isOnPlatform(x, y, width, height, velocity, platform) {
     y + height + velocity >= platform.y
   );
 }
-//checks is character on any platform or ground in the game
+//checks is character on any platform orin the game
 function isOnAnyPlatform(x, y, width, height, velocity) {
   for (let platform of platforms) {
     if (isOnPlatform(x, y, width, height, velocity, platform)) {
