@@ -16,11 +16,11 @@ let isJump1 = false;
 let jumpCount1 = 0;
 
 // Variables char2
-let x2 = 39;
+let x2 = 40;
 let y2 = 332;
 let xWidth2 = 40;
 let yHeight2 = 40;
-let moveStep2 = 4;
+let moveStep2 = 3;
 let gravity2 = 1;
 let jump2 = -15;
 let jumpVelo2 = 0;
@@ -32,7 +32,6 @@ coinVisible = true;
 let score = 0;
 const maxJump = 2;
 let fallingObjects = [];
-//let fallSpeed = 4;
 let gameState = "start";
 let timer = 60;
 let intervalID;
@@ -382,7 +381,7 @@ function resetGame() {
 }
 //the gamescreen for level 2
 function nextLevel2() {
-  scrollSpeed = 6; // Faster scrolling
+  scrollSpeed = 5;
   drawSpikePlatforms(scrollOffset);
 
   fallSpeed = 8;
@@ -432,10 +431,10 @@ function nextLevel2() {
 }
 //the gamescreen for level 3
 function nextLevel3() {
-  scrollSpeed = 8; // Faster scrolling
+  scrollSpeed = 7; // Faster scrolling
   drawSpikePlatforms(scrollOffset);
 
-  fallSpeed = 8;
+  fallSpeed = 7;
 
   platformGapChance = 1; // Larger chance of platform gaps
 
@@ -1308,6 +1307,7 @@ function checkAllSpikeCollisions(
   }
   return false;
 }
+//the background stars moon and clouds
 function backDrop() {
   // Generate 100 stars at random positions within the whole canvas
   for (let i = 0; i < 100; i++) {
@@ -1324,47 +1324,6 @@ function backDrop() {
   // Draw stars from the pre-generated positions
   for (let i = 0; i < stars.length; i++) {
     drawStar(stars[i].x, stars[i].y); // Draw each star at its position
-  }
-
-  // Draw clouds and moon
-  clouds();
-  moon();
-
-  push();
-  translate(200, 100);
-  scale(0.8);
-  clouds();
-  pop();
-
-  push();
-  translate(80, 150);
-  scale(0.6);
-  clouds();
-  pop();
-
-  push();
-  translate(400, 60);
-  clouds();
-  pop();
-}
-
-function drawGradientBackground(color1, color2, color3) {
-  noStroke(); // Remove stroke for a smooth gradient
-
-  // First gradient: color1 to color2
-  for (let y = 0; y < height / 2; y++) {
-    let inter = map(y, 0, height / 2, 0, 1); // Transition factor for first half
-    let c = lerpColor(color(color1), color(color2), inter); // Interpolate between colors
-    fill(c);
-    rect(0, y, width, 1); // Draw a thin rectangle
-  }
-
-  // Second gradient: color2 to color3
-  for (let y = height / 2; y < height; y++) {
-    let inter = map(y, height / 2, height, 0, 1); // Transition factor for second half
-    let c = lerpColor(color(color2), color(color3), inter); // Interpolate between colors
-    fill(c);
-    rect(0, y, width, 1); // Draw a thin rectangle
   }
 }
 
