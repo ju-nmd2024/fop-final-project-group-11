@@ -1309,6 +1309,7 @@ function checkAllSpikeCollisions(
 }
 //the background stars moon and clouds
 function backDrop() {
+  //Chat GPT https://chatgpt.com/c/674ed8b4-f554-8002-85a0-4292ae02cc7b 
   // Generate 100 stars at random positions within the whole canvas
   for (let i = 0; i < 100; i++) {
     let star = {
@@ -1321,6 +1322,7 @@ function backDrop() {
   // Draw the gradient background
   drawGradientBackground("#6C3483", "#5DADE2", "#FFB7C4");
 
+  //Chat GPT https://chatgpt.com/c/674ed8b4-f554-8002-85a0-4292ae02cc7b 
   // Draw stars from the pre-generated positions
   for (let i = 0; i < stars.length; i++) {
     drawStar(stars[i].x, stars[i].y); // Draw each star at its position
@@ -1350,9 +1352,9 @@ function moon() {
 }
 
 function drawStar(x, y) {
-  fill(255); // White color for stars
+  fill(255);
   noStroke();
-  ellipse(x, y, 3); // Draw a star at the given position
+  ellipse(x, y, 3);
 }
 
 //other sources
