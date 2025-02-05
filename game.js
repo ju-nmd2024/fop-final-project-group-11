@@ -42,6 +42,9 @@ let buttonW = 300;
 let buttonH = 100;
 let stars = []; // Array to store star positions
 
+//variables, added after initital examination
+
+
 //makes the buttons clickable
 function mousePressed() {
   if (gameState === "start") {
@@ -741,6 +744,7 @@ function drawPlatforms() {
     );
   }
 }
+
 //manages the ground and the gaps
 function ground() {
   fill(245, 150, 100);
@@ -1039,6 +1043,7 @@ function drawCoins() {
     }
   }
 }
+
 //fall object class
 class FallingObject {
   constructor(x, y, width, height, speed) {
@@ -1104,6 +1109,7 @@ class FallingObject {
     return this.y > height;
   }
 }
+
 //spawining and check collisons with char
 function fallEnemy() {
   // Spawn new falling object occasionally
@@ -1276,6 +1282,7 @@ function createSpikePlatforms() {
     }
   }
 }
+
 //draw spikeplatforms
 function drawSpikePlatforms(scrollOffset) {
   createSpikePlatforms();
@@ -1289,7 +1296,7 @@ function drawSpikePlatforms(scrollOffset) {
   for (let platform of spikePlatforms) {
     platform.draw(scrollOffset);
   }
-}
+} 
 //if character collide with spikeplatform
 function checkAllSpikeCollisions(
   charX,
@@ -1360,3 +1367,74 @@ function drawStar(x, y) {
 //other sources
 //https://p5js.org/
 //https://youtu.be/T-HGdc8L-7w?si=LnlGBQj76fS5QpAi
+
+let powerup = [];
+function drawPowerup() {
+  push();
+  noStroke();
+  fill(255, 255, 0);
+  triangle(160, 200, 200, 80, 240, 200);
+
+  fill(50, 205, 50);
+  triangle(160, 240, 200, 120, 240, 240);
+  pop();
+
+  if (random(1) < 0.015) {
+    let powerupWidth = random(80, 120);
+    let powerupHeight = 20;
+    let powerupX = scrollOffset + width + random(50, 250);
+    let powerupY = random(350, 200);
+
+    powerup.push({
+      x: powerupX,
+      y: powerupY,
+      width: powerupWidth,
+      height: powerupHeight,
+    });
+  }
+
+  powerup = powerup.filter(
+    (powerup) => powerup.x - scrollOffset + powerup.width > 0
+  );
+
+  for (let powerup1 of powerup) {
+      ellipse(       
+        powerup1.x - scrollOffset,
+        powerup1.y,
+        powerup1.width,
+        powerup1.height);
+  }
+}
+
+for (let powerup1 of powerup) {
+  ellipse(       
+    powerup1.x - scrollOffset,
+    powerup1.y,
+    powerup1.width,
+    powerup1.height);
+}
+
+// Function to handle power-up collection and apply its effect
+function collect() {
+  if (!this.collected) {
+    this.collected = true;
+    playerSpeed += 2;
+
+    //removes speed-buff after 5 seconds, 5000 ms
+    setTimeout(() => {
+      playerSpeed -= 2;
+      this.collected = false;
+    }, 5000);
+  }
+}
+
+//simulate collecting the power-up
+function checkPowerUp() {
+  if (powerUp.checkCollision(player.x, player.y, player.width, player.height)) {
+    powerUp.collect();
+  }
+}
+
+// The power-ups are not showing up, and there are no errors. 
+// After researching and asking chat GPT to tell me wat was wrong, 
+// I couldn't figure out how to make it work. However, I know what the code i've written is supposed to do :)
