@@ -14,6 +14,7 @@ let jump1 = -15;
 let jumpVelo1 = 0;
 let isJump1 = false;
 let jumpCount1 = 0;
+let hasSpeedBoost1 = false;
 
 // Variables char2
 let x2 = 40;
@@ -26,6 +27,7 @@ let jump2 = -15;
 let jumpVelo2 = 0;
 let isJump2 = false;
 let jumpCount2 = 0;
+let hasSpeedBoost2 = false;
 
 //variables not affected by char
 coinVisible = true;
@@ -197,6 +199,7 @@ function gameScreen() {
   drawPlatforms();
   ground();
   drawCoins();
+  drawPowerUps();
   fill(255);
   textSize(24);
   text("Score: " + score, 70, 30, 3);
@@ -242,31 +245,31 @@ function winScreen() {
   strokeWeight(10);
   fill(245, 150, 100);
 
-  rect(buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  rect(buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20);
 
-  rect(buttonX - 110, buttonY, buttonW + 230, buttonH, 70);
+  rect(buttonX - 110, buttonY, buttonW + 230, buttonH);
   strokeWeight(3);
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(36);
   text("Click to proceed to the next level", buttonX + 150, buttonY + 50);
-  text("1", buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  text("1", buttonX - 50, buttonY + 200, buttonW - 200, buttonH - 20);
   //2
   fill(129, 129, 129);
   stroke(0);
   textAlign(CENTER, CENTER);
   textSize(36);
-  rect(buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  rect(buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20);
   fill(255);
-  text("2", buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  text("2", buttonX + 100, buttonY + 200, buttonW - 200, buttonH - 20);
   //3
   fill(129, 129, 129);
   stroke(0);
   textAlign(CENTER, CENTER);
   textSize(36);
-  rect(buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  rect(buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20);
   fill(255);
-  text("3", buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20, 70);
+  text("3", buttonX + 250, buttonY + 200, buttonW - 200, buttonH - 20);
   pop();
 }
 //the winscreen for level 2
@@ -359,7 +362,11 @@ function resetGame() {
   char2Stopped = false;
   scrollOffset = 0;
   scrollSpeed = 3;
-
+  moveStep1 = 3;
+  moveStep2 = 3;
+  hasSpeedBoost1 = false;
+  hasSpeedBoost2 = false;
+  
   // Reset platforms
   platforms = [{ x: 165, y: 300, width: 100, height: 20 }];
 
@@ -412,6 +419,7 @@ function nextLevel2() {
   drawPlatforms();
   ground();
   drawCoins();
+  drawPowerUps();
   fill(255);
   textSize(24);
   text("Score: " + score, 10, 30);
@@ -465,6 +473,7 @@ function nextLevel3() {
   drawPlatforms();
   ground();
   drawCoins();
+  drawPowerUps();
   fill(255);
   textSize(24);
   text("Score: " + score, 10, 30);
@@ -627,6 +636,8 @@ function moving() {
       char1Stopped = true; // Stop character
       coinVisible = false;
     }
+
+    checkPowerUp(x1 - xWidth1, y1, xWidth1, yHeight1, scrollOffset, true);
   }
 
   if (!char2Stopped) {
@@ -679,6 +690,8 @@ function moving() {
       char2Stopped = true;
       gameState = "lose";
     }
+
+    checkPowerUp(x2 - xWidth2, y2, xWidth2, yHeight2, scrollOffset, false);
   }
 
   scrollOffset += scrollSpeed;
@@ -793,15 +806,20 @@ function charOne() {
   rect(x1 - 49, baseY - 318, 5, 23);
   ellipse(x1 - 47, baseY - 318, 10);
   push();
-  fill(0, 255, 0);
+  // If player has a speed boost from a power up the antenna is red
+  if(hasSpeedBoost1) {
+    fill(255, 0, 0);
+  } else {
+    fill(0, 255, 0);
+  }
   rect(x1 - 41, baseY - 318, 5, 23);
   ellipse(x1 - 39, baseY - 318, 12);
   fill(255);
   stroke(200);
-  arc(x1 - 35, baseY - 318, 5, 7, -HALF_PI, HALF_PI, PI);
+  arc(x1 - 35, baseY - 318, 5, 7, -HALF_PI, HALF_PI, PIE);
   fill(0);
   noStroke();
-  arc(x1 - 33, baseY - 318, 3, 5, -HALF_PI, HALF_PI, PI);
+  arc(x1 - 33, baseY - 318, 3, 5, -HALF_PI, HALF_PI, PIE);
   pop();
 
   // Body
@@ -812,7 +830,7 @@ function charOne() {
   // Spots
   push();
   fill(255, 225, 0);
-  arc(x1 - 22, baseY - 239, 26, 46, -HALF_PI, HALF_PI, PI);
+  arc(x1 - 22, baseY - 239, 26, 46, -HALF_PI, HALF_PI, PIE);
   ellipse(x1 - 49, baseY - 289, 17);
   ellipse(x1 - 37, baseY - 280, 7);
   ellipse(x1 - 45, baseY - 275, 10);
@@ -836,10 +854,10 @@ function charOne() {
   push();
   stroke(200);
   fill(255);
-  arc(x1 - 18, baseY - 282, 15, 22, -HALF_PI, HALF_PI, PI);
+  arc(x1 - 18, baseY - 282, 15, 22, -HALF_PI, HALF_PI, PIE);
   fill(0);
   noStroke();
-  arc(x1 - 13, baseY - 282, 10, 12, -HALF_PI, HALF_PI, PI);
+  arc(x1 - 13, baseY - 282, 10, 12, -HALF_PI, HALF_PI, PIE);
   pop();
 
   // Leg
@@ -875,9 +893,9 @@ function charOne() {
   push();
   stroke(0, 110, 0);
   fill(0, 255, 0);
-  arc(x1 - 39, baseY - 229, 3, 10, 0, 3, PI);
-  arc(x1 - 35, baseY - 231, 3, 10, 5, 3, PI);
-  arc(x1 - 43, baseY - 231, 3, 10, 7, 3, PI);
+  arc(x1 - 39, baseY - 229, 3, 10, 0, 3, PIE);
+  arc(x1 - 35, baseY - 231, 3, 10, 5, 3, PIE);
+  arc(x1 - 43, baseY - 231, 3, 10, 7, 3, PIE);
   pop();
 }
 //character 2 design
@@ -890,15 +908,20 @@ function charTwo() {
   rect(x2 - 49, baseY - 318, 5, 23);
   ellipse(x2 - 47, baseY - 318, 10);
   push();
-  fill(0, 200, 255);
+  // If player has a speed boost from a power up the antenna is red
+  if(hasSpeedBoost2) {
+    fill(255, 0, 0);
+  } else {
+    fill(0, 200, 255);
+  }
   rect(x2 - 41, baseY - 318, 5, 23);
   ellipse(x2 - 39, baseY - 318, 12);
   fill(255);
   stroke(200);
-  arc(x2 - 35, baseY - 318, 5, 7, -HALF_PI, HALF_PI, PI);
+  arc(x2 - 35, baseY - 318, 5, 7, -HALF_PI, HALF_PI, PIE);
   fill(0);
   noStroke();
-  arc(x2 - 33, baseY - 318, 3, 5, -HALF_PI, HALF_PI, PI);
+  arc(x2 - 33, baseY - 318, 3, 5, -HALF_PI, HALF_PI, PIE);
   pop();
 
   // Body
@@ -909,7 +932,7 @@ function charTwo() {
   // Spots
   push();
   fill(255, 200, 200);
-  arc(x2 - 20, baseY - 241, 30, 48, -HALF_PI, HALF_PI, PI);
+  arc(x2 - 20, baseY - 241, 30, 48, -HALF_PI, HALF_PI, PIE);
   ellipse(x2 - 49, baseY - 289, 17);
   ellipse(x2 - 37, baseY - 280, 7);
   ellipse(x2 - 45, baseY - 275, 10);
@@ -933,10 +956,10 @@ function charTwo() {
   push();
   stroke(200);
   fill(255);
-  arc(x2 - 19, baseY - 282, 15, 22, -HALF_PI, HALF_PI, PI);
+  arc(x2 - 19, baseY - 282, 15, 22, -HALF_PI, HALF_PI, PIE);
   fill(0);
   noStroke();
-  arc(x2 - 13, baseY - 282, 10, 12, -HALF_PI, HALF_PI, PI);
+  arc(x2 - 13, baseY - 282, 10, 12, -HALF_PI, HALF_PI, PIE);
   pop();
 
   // Leg
@@ -971,9 +994,9 @@ function charTwo() {
   push();
   stroke(0, 0, 110);
   fill(0, 200, 255);
-  arc(x2 - 39, baseY - 229, 3, 10, 0, 3, PI);
-  arc(x2 - 35, baseY - 231, 3, 10, 5, 3, PI);
-  arc(x2 - 43, baseY - 231, 3, 10, 7, 3, PI);
+  arc(x2 - 39, baseY - 229, 3, 10, 0, 3, PIE);
+  arc(x2 - 35, baseY - 231, 3, 10, 5, 3, PIE);
+  arc(x2 - 43, baseY - 231, 3, 10, 7, 3, PIE);
   pop();
 }
 // the coin class
@@ -1368,73 +1391,107 @@ function drawStar(x, y) {
 //https://p5js.org/
 //https://youtu.be/T-HGdc8L-7w?si=LnlGBQj76fS5QpAi
 
+//Start of new power-up code
+
+class PowerUp {
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.powerUpTimeOut = 10000; // The power up lasts for 10 seconds
+  }
+
+  // Method to draw the power-up
+  draw(scrollOffset) {
+    fill(255, 0, 0);  // Power-up color (red)
+    noStroke();
+    let x = this.x - scrollOffset;
+    // Left triangle
+    triangle(x - this.width/2, this.y - this.height/2, x - this.width/2, this.y + this.height/2, x, this.y);
+    // Right triangle
+    triangle(x, this.y - this.height/2, x, this.y + this.height/2, x + this.width/2, this.y);
+  }
+
+  // Method to check if the power-up is caught by a character
+  checkCollision(charX, charY, charWidth, charHeight, scrollOffset) {
+    let powerUpx = this.x - scrollOffset;
+
+    return (
+      powerUpx < charX + charWidth &&
+      powerUpx + this.width > charX &&
+      this.y < charY + charHeight &&
+      this.y + this.height > charY
+    );
+  }
+
+  // Method to apply the power-up effect
+  applyPowerUp(isPlayer1) { 
+    const boostedMoveStepSpeed = 8;
+    if(isPlayer1) {
+      moveStep1 = boostedMoveStepSpeed;
+      hasSpeedBoost1 = true;
+      setTimeout(() => {
+        hasSpeedBoost1 = false;
+        moveStep1 = 3;
+      }, this.powerUpTimeOut);
+    } else {
+      moveStep2 = boostedMoveStepSpeed;
+      hasSpeedBoost2 = true;
+      setTimeout(() => {
+        moveStep2 = 3;
+        hasSpeedBoost2 = false;
+      }, this.powerUpTimeOut);
+    }
+  }
+
+}
+
+// Array to store all visible power-ups 
 let powerup = [];
-function drawPowerup() {
-  push();
-  noStroke();
-  fill(255, 255, 0);
-  triangle(160, 200, 200, 80, 240, 200);
 
-  fill(50, 205, 50);
-  triangle(160, 240, 200, 120, 240, 240);
-  pop();
+// This function handles the drawing of the power-ups
+function drawPowerUps() {
 
-  if (random(1) < 0.015) {
-    let powerupWidth = random(80, 120);
-    let powerupHeight = 20;
-    let powerupX = scrollOffset + width + random(50, 250);
-    let powerupY = random(350, 200);
+  // Generate new power-up randomly
+  if (random(1) < 0.01) {
+    let powerupWidth = 25;
+    let powerupHeight = 25;
+    let powerupX = scrollOffset + width + random(50, 300);
+    let powerupY = random(100, 350);
 
-    powerup.push({
-      x: powerupX,
-      y: powerupY,
-      width: powerupWidth,
-      height: powerupHeight,
-    });
+    powerup.push(new PowerUp (
+      powerupX,
+      powerupY,
+      powerupWidth,
+      powerupHeight,
+    ));
   }
 
-  powerup = powerup.filter(
-    (powerup) => powerup.x - scrollOffset + powerup.width > 0
-  );
+  // Remove power-ups no longer visible on the screen
+  powerup = powerup.filter((powerup) => powerup.x - scrollOffset + powerup.width > 0);
 
-  for (let powerup1 of powerup) {
-      ellipse(       
-        powerup1.x - scrollOffset,
-        powerup1.y,
-        powerup1.width,
-        powerup1.height);
+  // Draw the visible power-ups to the game screen
+  for (let i = powerup.length - 1; i >= 0; i--) {
+    let p = powerup[i];
+    p.draw(scrollOffset);
   }
 }
 
-for (let powerup1 of powerup) {
-  ellipse(       
-    powerup1.x - scrollOffset,
-    powerup1.y,
-    powerup1.width,
-    powerup1.height);
-}
-
-// Function to handle power-up collection and apply its effect
-function collect() {
-  if (!this.collected) {
-    this.collected = true;
-    playerSpeed += 2;
-
-    //removes speed-buff after 5 seconds, 5000 ms
-    setTimeout(() => {
-      playerSpeed -= 2;
-      this.collected = false;
-    }, 5000);
+// Check of a player has collected a power-up
+function checkPowerUp(
+  charX,
+  charY,
+  charWidth,
+  charHeight,
+  scrollOffset,
+  isPlayer1 // To keep track of if it's player 1 or player 2 that collected the power-up
+) {
+  for (let i = powerup.length - 1; i >= 0; i--) {
+    let p = powerup[i];
+    if (p.checkCollision(charX, charY, charWidth, charHeight, scrollOffset)) {
+      p.applyPowerUp(isPlayer1);
+      powerup.splice(i, 1);
+    }
   }
 }
-
-//simulate collecting the power-up
-function checkPowerUp() {
-  if (powerUp.checkCollision(player.x, player.y, player.width, player.height)) {
-    powerUp.collect();
-  }
-}
-
-// The power-ups are not showing up, and there are no errors. 
-// After researching and asking chat GPT to tell me wat was wrong, 
-// I couldn't figure out how to make it work. However, I know what the code i've written is supposed to do :)
